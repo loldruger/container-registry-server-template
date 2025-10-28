@@ -31,9 +31,10 @@ services:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
     volumes:
       # Mount registry data
-      - /mnt/registry-data:/var/lib/registry
+      - registry-data:/var/lib/registry
       # Mount htpasswd file (read-only for registry)
       - ./auth:/etc/nginx/auth:ro
 
 volumes:
+  registry-data:
   acme_data:
