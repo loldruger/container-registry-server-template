@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   nginx:
     # This image MUST be custom-built with ngx_http_acme_module
