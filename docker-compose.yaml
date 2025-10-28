@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  nginx:
+    # This image MUST be custom-built with ngx_http_acme_module
+    image: nginx:latest
+    container_name: registry_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount the nginx config
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      # Mount the htpasswd file
+      - ./auth:/etc/nginx/auth
+      # Mount the ACME state (certs, keys)
+      - acme_data:/etc/nginx/acme_state
+    depends_on:
+      - registry
+
+  registry:
+    image: registry:2
+    container_name: registry_service
+    restart: always
+    environment:
+      # Configure registry to use htpasswd
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "Registry Realm"
+      REGISTRY_AUTH_HTPASSWD_PATH: /etc/nginx/auth/htpasswd
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+    volumes:
+      # Mount registry data
+      - /mnt/registry-data:/var/lib/registry
+      # Mount htpasswd file (read-only for registry)
+      - ./auth:/etc/nginx/auth:ro
+
+volumes:
+  acme_data:
