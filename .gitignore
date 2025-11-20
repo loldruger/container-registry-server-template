@@ -1,1 +1,4 @@
-/auth
+.env
+data/
+auth/
+certs/
