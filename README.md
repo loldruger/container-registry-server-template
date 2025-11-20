@@ -4,7 +4,7 @@ cp .env.example .env
 ```
 
 ## Step 2: Set the .env:
-```python
+```bash
 REGISTRY_DOMAIN=example.com #your own domain
 REGISTRY_PORT=443 #custom port number for secure access to registry server
 ADMIN_USER=admin
