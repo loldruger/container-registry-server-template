@@ -1,6 +1,8 @@
 services:
   init:
-    build: ./init
+    build:
+      context: ./init
+      dockerfile: Containerfile
     container_name: registry_init
     env_file:
       - ./.env
@@ -9,7 +11,9 @@ services:
       - ${DATA_ROOT}/certs:/certs
 
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Containerfile
     container_name: registry_nginx
     restart: always
     env_file:
