@@ -6,7 +6,7 @@ echo "Starting initialization..."
 # 1. Generate htpasswd if missing
 if [ ! -f /auth/htpasswd ]; then
     echo "Generating htpasswd for user: $ADMIN_USER"
-    htpasswd -Bc /auth/htpasswd "$ADMIN_USER" "$ADMIN_PASSWORD"
+    htpasswd -Bbc /auth/htpasswd "$ADMIN_USER" "$ADMIN_PASSWORD"
     # Ensure it is readable by other containers
     chmod 644 /auth/htpasswd
 else
