@@ -1,9 +1,0 @@
-FROM docker.io/library/alpine:latest
-
-# Install tools required for generating auth and certs
-RUN apk add --no-cache openssl apache2-utils
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]

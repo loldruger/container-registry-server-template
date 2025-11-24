@@ -1,15 +1,4 @@
 services:
-  init:
-    build:
-      context: ./init
-      dockerfile: Containerfile
-    container_name: registry_init
-    env_file:
-      - ./.env
-    volumes:
-      - ${DATA_ROOT}/auth:/auth
-      - ${DATA_ROOT}/certs:/certs
-
   nginx:
     build:
       context: ./nginx
@@ -28,11 +17,13 @@ services:
       - ${DATA_ROOT}/auth:/etc/nginx/auth
       # Mount SSL certs
       - ${DATA_ROOT}/certs:/etc/nginx/certs:ro
+      # Mount Let's Encrypt certs
+      - ${DATA_ROOT}/letsencrypt:/etc/letsencrypt
+      # Mount Nginx configuration directory for Certbot snippets
+      - ${DATA_ROOT}/nginx_conf_d:/etc/nginx/conf.d
     depends_on:
       registry:
         condition: service_started
-      init:
-        condition: service_completed_successfully
 
   registry:
     image: registry:2
@@ -49,6 +40,3 @@ services:
       - ${DATA_ROOT}/images:/var/lib/registry
       # Mount htpasswd file (read-only for registry)
       - ${DATA_ROOT}/auth:/etc/nginx/auth:ro
-    depends_on:
-      init:
-        condition: service_completed_successfully

@@ -18,6 +18,8 @@ ADMIN_PASSWORD=admin123
 # Root path for all persistent data (auth, certs, images)
 # Example: /mnt/external_drive/registry
 DATA_ROOT=./data
+CERTBOT_EMAIL=
+CERTBOT_DOMAIN=
 EOF
 else
     echo ".env file already exists. Loading..."
@@ -29,11 +31,6 @@ source ./.env
 set +a
 
 echo "Using data root: $DATA_ROOT"
-
-# Create data directories
-mkdir -p "$DATA_ROOT/auth" "$DATA_ROOT/certs" "$DATA_ROOT/images"
-
-echo -e "${GREEN}[2/3] Starting services...${NC}"
 
 # Determine which compose tool to use
 if command -v podman-compose &> /dev/null; then
@@ -54,8 +51,46 @@ else
     exit 1
 fi
 
+# Create data directories
+mkdir -p "$DATA_ROOT/auth" "$DATA_ROOT/certs" "$DATA_ROOT/images" "$DATA_ROOT/letsencrypt" "$DATA_ROOT/nginx_conf_d"
+
+echo -e "${GREEN}[1.5/3] Initializing configuration files...${NC}"
+
+# 1. Generate htpasswd if missing
+if [ ! -f "$DATA_ROOT/auth/htpasswd" ]; then
+    echo "Generating htpasswd for user: $ADMIN_USER"
+    # Use temporary alpine container to generate htpasswd
+    $CLIENT_CMD run --rm -v "$DATA_ROOT/auth:/auth" alpine sh -c "apk add --no-cache apache2-utils && htpasswd -Bbc /auth/htpasswd '$ADMIN_USER' '$ADMIN_PASSWORD'"
+else
+    echo "htpasswd already exists. Skipping."
+fi
+
+# 2. Generate Self-Signed Certs if missing
+if [ ! -f "$DATA_ROOT/certs/domain.key" ] || [ ! -f "$DATA_ROOT/certs/domain.crt" ]; then
+    echo "Generating self-signed certificate for: $REGISTRY_DOMAIN"
+    $CLIENT_CMD run --rm -v "$DATA_ROOT/certs:/certs" alpine sh -c "apk add --no-cache openssl && openssl req -newkey rsa:4096 -nodes -sha256 -keyout /certs/domain.key -x509 -days 365 -out /certs/domain.crt -subj '/CN=$REGISTRY_DOMAIN'"
+else
+    echo "Certificates already exist. Skipping."
+fi
+
+echo -e "${GREEN}[2/3] Starting services...${NC}"
+
 echo "Initializing and starting containers..."
 $COMPOSE_CMD up --build -d
+
+# Optional: Setup SSL with Certbot
+if [ -n "$CERTBOT_EMAIL" ]; then
+    echo -e "${GREEN}[Extra] Setting up HTTPS with Certbot...${NC}"
+    DOMAIN=${CERTBOT_DOMAIN:-$REGISTRY_DOMAIN}
+    
+    echo "Requesting certificate for $DOMAIN..."
+    $CLIENT_CMD exec registry_nginx certbot --nginx \
+      -d "$DOMAIN" \
+      --email "$CERTBOT_EMAIL" \
+      --agree-tos \
+      --non-interactive \
+      --redirect
+fi
 
 echo -e "${GREEN}[3/3] Deployment Complete!${NC}"
 echo "Registry is available at https://${REGISTRY_DOMAIN}:${REGISTRY_PORT}"
