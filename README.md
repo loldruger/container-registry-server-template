@@ -19,4 +19,15 @@ CERTBOT_DOMAIN=example.com
 ./deploy.sh
 ```
 
+## Step 4: Login to your Registry
+After successful deployment and Certbot certificate issuance, you can log in to your registry. 
+**IMPORTANT**: Once Certbot has successfully configured HTTPS, you should NOT use `--tls-verify=false`.
+
+```sh
+docker login ${REGISTRY_DOMAIN}:${REGISTRY_PORT} -u ${ADMIN_USER} -p ${ADMIN_PASSWORD}
+# If you are using self-signed certificates or Certbot is not yet configured, 
+# you might temporarily need to use --tls-verify=false (NOT RECOMMENDED for production):
+# docker login ${REGISTRY_DOMAIN}:${REGISTRY_PORT} --tls-verify=false -u ${ADMIN_USER} -p ${ADMIN_PASSWORD}
+```
+
 Done
