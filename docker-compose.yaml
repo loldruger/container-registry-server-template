@@ -11,15 +11,11 @@ services:
       - "80:80"
       - "${REGISTRY_PORT:-443}:443"
     volumes:
-      # Mount the nginx config template
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf.template
       # Mount the htpasswd file
       - ${DATA_ROOT}/auth:/etc/nginx/auth
-      # Mount SSL certs
-      - ${DATA_ROOT}/certs:/etc/nginx/certs:ro
       # Mount Let's Encrypt certs
       - ${DATA_ROOT}/letsencrypt:/etc/letsencrypt
-      # Mount Nginx configuration directory for Certbot snippets
+      # Mount Nginx configuration directory (Actual server blocks live here)
       - ${DATA_ROOT}/nginx_conf_d:/etc/nginx/conf.d
     depends_on:
       registry:

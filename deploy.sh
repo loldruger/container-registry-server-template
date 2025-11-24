@@ -52,7 +52,7 @@ else
 fi
 
 # Create data directories
-mkdir -p "$DATA_ROOT/auth" "$DATA_ROOT/certs" "$DATA_ROOT/images" "$DATA_ROOT/letsencrypt" "$DATA_ROOT/nginx_conf_d"
+mkdir -p "$DATA_ROOT/auth" "$DATA_ROOT/images" "$DATA_ROOT/letsencrypt" "$DATA_ROOT/nginx_conf_d"
 
 echo -e "${GREEN}[1.5/3] Initializing configuration files...${NC}"
 
@@ -65,12 +65,14 @@ else
     echo "htpasswd already exists. Skipping."
 fi
 
-# 2. Generate Self-Signed Certs if missing
-if [ ! -f "$DATA_ROOT/certs/domain.key" ] || [ ! -f "$DATA_ROOT/certs/domain.crt" ]; then
-    echo "Generating self-signed certificate for: $REGISTRY_DOMAIN"
-    $CLIENT_CMD run --rm -v "$DATA_ROOT/certs:/certs" alpine sh -c "apk add --no-cache openssl && openssl req -newkey rsa:4096 -nodes -sha256 -keyout /certs/domain.key -x509 -days 365 -out /certs/domain.crt -subj '/CN=$REGISTRY_DOMAIN'"
+# 2. Generate Nginx Configuration
+# We use sed to replace variables in the template and save it to the mounted volume.
+# This ensures the config persists on the host and can be modified by Certbot.
+if [ ! -f "$DATA_ROOT/nginx_conf_d/registry.conf" ]; then
+    echo "Generating Nginx configuration from template..."
+    sed "s/\${REGISTRY_DOMAIN}/$REGISTRY_DOMAIN/g" ./nginx/registry.conf.template > "$DATA_ROOT/nginx_conf_d/registry.conf"
 else
-    echo "Certificates already exist. Skipping."
+    echo "Nginx configuration already exists. Skipping generation to preserve SSL settings."
 fi
 
 echo -e "${GREEN}[2/3] Starting services...${NC}"

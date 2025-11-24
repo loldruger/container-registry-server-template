@@ -1,9 +1,13 @@
 FROM docker.io/library/nginx:alpine
 
-# Install gettext for envsubst
-RUN apk add --no-cache gettext certbot certbot-nginx
+# Install certbot-nginx for the 'exec' command capability, 
+# although certbot logic is mainly driven from outside or via exec.
+# We keep it to ensure 'certbot' command is available inside the container.
+RUN apk add --no-cache certbot certbot-nginx
 
-COPY nginx.conf /etc/nginx/nginx.conf.template
+# Overwrite default nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Use an entrypoint script to substitute environment variables in the config
-CMD /bin/sh -c "envsubst '\$REGISTRY_DOMAIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
+# We do NOT run envsubst here anymore. 
+# The dynamic config will be mounted into /etc/nginx/conf.d/
+CMD ["nginx", "-g", "daemon off;"]
