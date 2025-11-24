@@ -10,6 +10,8 @@ REGISTRY_PORT=443 #custom port number for secure access to registry server
 ADMIN_USER=admin
 ADMIN_PASSWORD=admin
 DATA_ROOT=/registry # Directory where generated data persists.
+CERTBOT_EMAIL=admin@example.com
+CERTBOT_DOMAIN=example.com
 ```
 
 ## Step 3: Execute deploy.sh
