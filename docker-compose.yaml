@@ -1,5 +1,6 @@
 services:
   nginx:
+    image: localhost/registry_nginx
     build:
       context: ./nginx
       dockerfile: Containerfile
@@ -22,7 +23,7 @@ services:
         condition: service_started
 
   registry:
-    image: registry:2
+    image: docker.io/library/registry:2
     container_name: registry_service
     restart: always
     environment:
