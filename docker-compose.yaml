@@ -1,6 +1,7 @@
 services:
   nginx:
     image: localhost/registry_nginx
+    pull_policy: never
     build:
       context: ./nginx
       dockerfile: Containerfile
